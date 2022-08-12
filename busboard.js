@@ -47,4 +47,21 @@ async function getLatandLong(postcode){
 
 }
 
-let latandlong = getLatandLong('N16%205BN')
+
+
+async function getStopPoints(postcode){
+    let latandlong = await getLatandLong(postcode)
+    let lat = latandlong[0]
+    let lon = latandlong[1]
+    let stopTypes = ['NaptanOnstreetBusCoachStopPair']
+    let radius = [1000]
+
+
+    let url = `https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=${stopTypes}&radius=${radius}`
+
+    let stoppoints = await(fetch(url).then(response => response.json()))
+
+    console.log(stoppoints)
+}
+
+getStopPoints('N16%205BN')
