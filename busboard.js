@@ -1,6 +1,10 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const readline = require('readline-sync')
 
+async function getUrlData(url){
+    let busData = await fetch(url).then(response => response.json())
+    return busData
+}
 
 async function getBusTimes(){
 
@@ -10,17 +14,19 @@ async function getBusTimes(){
 
     var url = "https://api.tfl.gov.uk/StopPoint/" + stopCode + "/Arrivals"
 
-    var busData = await fetch(url).then(response => response.json())
+    var busData = getUrlData(url)
     // console.log(busData)
 
-    sortedBusData = busData.sort(function(first, second) {
-        return first.timeToStation - second.timeToStation;
-    });
-        
-    for (let i = 0; i<5; i++){
-        console.log(sortedBusData[i].lineName)
+    console.log(busData)
 
-    }
+    // sortedBusData = busData.sort(function(first, second) {
+    //     return first.timeToStation - second.timeToStation;
+    // });
+        
+    // for (let i = 0; i<5; i++){
+    //     console.log(sortedBusData[i].lineName)
+
+    // }
 
 
     // fetch(url)
@@ -34,3 +40,6 @@ async function getBusTimes(){
 
 getBusTimes()
 
+function getLatandLong(){
+
+}
