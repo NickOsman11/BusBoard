@@ -3,10 +3,6 @@ const readline = require('readline-sync')
 
 async function getBusTimes(stopCode){
 
-    // console.log("enter a stop code")
-    // stopCode = readline.prompt()
-    // let stopCode = "490012572E";
-    console.log(stopCode)
     var url = "https://api.tfl.gov.uk/StopPoint/" + stopCode + "/Arrivals"
     let busData = await fetch(url).then(response => response.json())
 
@@ -18,12 +14,7 @@ async function getBusTimes(stopCode){
 
     return sortedBusList
 
-
-
-
-
 }
-
 
 async function getLatandLong(postcode){
 
@@ -45,8 +36,6 @@ async function getLatandLong(postcode){
 
 }
 
-
-
 async function getStopPoints(postcode){
     let latandlong = await getLatandLong(postcode)
     let lat = latandlong[0]
@@ -54,32 +43,30 @@ async function getStopPoints(postcode){
     let stopTypes = ['NaptanPublicBusCoachTram']
     let radius = [500]
 
-
     let url = `https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=${stopTypes}&radius=${radius}`
 
     let stoppoints = await(fetch(url).then(response => response.json()))
 
     stoppointslist = stoppoints.stopPoints
-    
-
 
     let sortedstops = stoppointslist.sort(function(first, second) {
         return first.distance - second.distance;
     });
 
-    // console.log(sortedstops[0].id)
     stopArray = []
     sortedstops.slice(0,2).forEach(stop => stopArray.push(stop.id))
-    console.log(stopArray)
 
+    let output = []
     for (let i = 0; i<2; i++){
-        console.log("stop array ", i, stopArray[i])
-        getBusTimes((stopArray[i])).then(x => console.log(x))
+        let dict = {};
+        console.log(stopArray[i])
+        let times = await getBusTimes((stopArray[i])).then(x => console.log(x))
+        dict[stopArray[i]] = times
+        output.push(dict)
     }
-    // stopArray.forEach(x => (await getBusTimes(x)))
 
+    return output
     
 }
-// let busTimes = getBusTimes("490012572E").then(x => console.log(x))
 
 console.log(getStopPoints('N16%205BN'))
