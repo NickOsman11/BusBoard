@@ -27,8 +27,24 @@ async function getBusTimes(){
 }
 
 
-getBusTimes()
+async function getLatandLong(postcode){
 
-function getLatandLong(){
+    let baseurl = 'http://api.postcodes.io/postcodes/'
+    let postcodedata
+
+    let validationurl = baseurl + postcode + '/validate'
+    let valid = await fetch(validationurl).then(response => response.json())
+
+    if (valid.result){
+        let postcodeurl = baseurl + postcode
+        postcodedata = await(fetch(postcodeurl).then(response => response.json()))
+    }
+
+    let latitude = postcodedata.result.latitude
+    let longitude = postcodedata.result.longitude
+
+    return [latitude, longitude]
 
 }
+
+let latandlong = getLatandLong('N16%205BN')
