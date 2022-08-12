@@ -54,14 +54,23 @@ async function getStopPoints(postcode){
     let lat = latandlong[0]
     let lon = latandlong[1]
     let stopTypes = ['NaptanOnstreetBusCoachStopPair']
-    let radius = [1000]
+    let radius = [500]
 
 
     let url = `https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=${stopTypes}&radius=${radius}`
 
     let stoppoints = await(fetch(url).then(response => response.json()))
 
-    console.log(stoppoints)
+    stoppointslist = stoppoints.stopPoints
+
+    let sortedstops = stoppointslist.sort(function(first, second) {
+        return first.distance - second.distance;
+    });
+
+
+
+    let closestn = sortedstops[0]
+    console.log(sortedstops)
 }
 
 getStopPoints('N16%205BN')
