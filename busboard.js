@@ -67,8 +67,6 @@ async function getStopPoints(postcode){
         return first.distance - second.distance;
     });
 
-
-
     let closestn = sortedstops[0]
     console.log(sortedstops)
 }
