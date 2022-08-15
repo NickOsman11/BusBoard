@@ -5,6 +5,7 @@ async function getBusTimes(stopCode){
 
     var url = "https://api.tfl.gov.uk/StopPoint/" + stopCode + "/Arrivals"
     let busData = await fetch(url).then(response => response.json())
+    // console.log(busData)
 
     sortedBusData = busData.sort(function(first, second) {
         return first.timeToStation - second.timeToStation;
@@ -36,22 +37,50 @@ async function getStopPoints(){
     let lat = latandlong[0]
     let lon = latandlong[1]
     let stopTypes = ['NaptanPublicBusCoachTram']
-    let radius = [500]
+    let radius
+    let stoppointslist = []
 
-    let url = `https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=${stopTypes}&radius=${radius}`
+    console.log('please enter a distance')
 
-    let stoppoints = await(fetch(url).then(response => response.json()))
+    radius = Math.min(readline.prompt(), 1000)
 
-    stoppointslist = stoppoints.stopPoints
+    
+    do{
+        try{
+            let url = `https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=${stopTypes}&radius=${radius}`
+            let stoppoints = await(fetch(url).then(response => response.json()))
+            stoppointslist = stoppoints.stopPoints
 
-    let sortedstops = stoppointslist.sort(function(first, second) {
-        return first.distance - second.distance;
-    });
+            if (stoppointslist.length == 0){
 
-    stopArray = sortedstops.slice(0,2).map(stop => stop.id)
+                throw `no stoppoints within distance`
+            }
+        }
+        catch(error){
+            if (error == 'no stoppoints within distance')
+            console.log(`no stoppoints ${radius} m of this postcode. please extend try extending the radius`)
+            radius = readline.prompt()
+        }
+    } while (stoppointslist.length == 0)
+    
+    let stopArray;
+
+    if (stoppointslist.length == 1){
+        stopArray = stoppointslist.map(stop => stop.id)
+    } else{
+
+        let sortedstops = stoppointslist.sort(function(first, second) {
+            return first.distance - second.distance;
+        });
+        stopArray = sortedstops.slice(0,2).map(stop => stop.id)
+
+    }
+
+    // console.log(stopArray)
+
 
     let output = []
-    for (let i = 0; i<2; i++){
+    for (let i = 0; i<stopArray.length; i++){
         let dict = {};
         console.log(stopArray[i])
         let times = await getBusTimes((stopArray[i])).then(x => console.log(x))
@@ -88,11 +117,11 @@ async function getValidPostcode(){
             if (error === "connection"){
                 console.log("Connection error, check connection and "
                             + "press enter to try again")
-                postcode = readline.prompt()
+                readline.prompt()
             }
             if (error === "invalid"){
                 console.log("Invalid postcode, try again:")
-                readline.prompt()
+                postcode = readline.prompt()
             }
         }
     } while(!postcodeIsValid.result)
