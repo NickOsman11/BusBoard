@@ -13,7 +13,6 @@ async function getBusTimes(stopCode){
     let sortedBusList = sortedBusData.map(x => x.lineName)
 
     return sortedBusList
-
 }
 
 async function getLatandLong(postcode){
@@ -21,13 +20,8 @@ async function getLatandLong(postcode){
     let baseurl = 'http://api.postcodes.io/postcodes/'
     let postcodedata
 
-    let validationurl = baseurl + postcode + '/validate'
-    let valid = await fetch(validationurl).then(response => response.json())
-
-    if (valid.result){
-        let postcodeurl = baseurl + postcode
-        postcodedata = await(fetch(postcodeurl).then(response => response.json()))
-    }
+    let postcodeurl = baseurl + postcode
+    postcodedata = await(fetch(postcodeurl).then(response => response.json()))
 
     let latitude = postcodedata.result.latitude
     let longitude = postcodedata.result.longitude
@@ -36,7 +30,8 @@ async function getLatandLong(postcode){
 
 }
 
-async function getStopPoints(postcode){
+async function getStopPoints(){
+    let postcode = await getValidPostcode()
     let latandlong = await getLatandLong(postcode)
     let lat = latandlong[0]
     let lon = latandlong[1]
@@ -53,8 +48,7 @@ async function getStopPoints(postcode){
         return first.distance - second.distance;
     });
 
-    stopArray = []
-    sortedstops.slice(0,2).forEach(stop => stopArray.push(stop.id))
+    stopArray = sortedstops.slice(0,2).map(stop => stop.id)
 
     let output = []
     for (let i = 0; i<2; i++){
@@ -66,7 +60,44 @@ async function getStopPoints(postcode){
     }
 
     return output
-    
 }
 
-console.log(getStopPoints('N16%205BN'))
+async function getValidPostcode(){
+
+    let postcodeIsValid; 
+    let postcode;
+    console.log("Enter a postcode")
+    postcode = readline.prompt()
+
+    do
+    {
+        try
+        {
+            let url = `https://api.postcodes.io/postcodes/${postcode}/validate`
+            postcodeIsValid = await fetch(url)
+                                    .then(x => x.json())
+
+            if (postcodeIsValid.status != 200){
+                throw "connection"
+            }
+            if (!postcodeIsValid.result){
+                throw "invalid"
+            }
+        }
+        catch (error){
+            if (error === "connection"){
+                console.log("Connection error, check connection and "
+                            + "press enter to try again")
+                postcode = readline.prompt()
+            }
+            if (error === "invalid"){
+                console.log("Invalid postcode, try again:")
+                readline.prompt()
+            }
+        }
+    } while(!postcodeIsValid.result)
+
+    return postcode
+}
+
+getStopPoints()
