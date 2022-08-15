@@ -31,55 +31,18 @@ async function getLatandLong(postcode){
 
 }
 
-async function getStopPoints(){
+async function busBoard(){
     let postcode = await getValidPostcode()
     let latandlong = await getLatandLong(postcode)
     let lat = latandlong[0]
     let lon = latandlong[1]
     let stopTypes = ['NaptanPublicBusCoachTram']
-    let radius
-    let stoppointslist = []
 
-    console.log('please enter a distance')
-
-    radius = Math.min(readline.prompt(), 1000)
-
-    
-    do{
-        try{
-            let url = `https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=${stopTypes}&radius=${radius}`
-            let stoppoints = await(fetch(url).then(response => response.json()))
-            stoppointslist = stoppoints.stopPoints
-
-            if (stoppointslist.length == 0){
-
-                throw `no stoppoints within distance`
-            }
-        }
-        catch(error){
-            if (error == 'no stoppoints within distance')
-            console.log(`no stoppoints ${radius} m of this postcode. please extend try extending the radius`)
-            radius = readline.prompt()
-        }
-    } while (stoppointslist.length == 0)
-    
-    let stopArray;
-
-    if (stoppointslist.length == 1){
-        stopArray = stoppointslist.map(stop => stop.id)
-    } else{
-
-        let sortedstops = stoppointslist.sort(function(first, second) {
-            return first.distance - second.distance;
-        });
-        stopArray = sortedstops.slice(0,2).map(stop => stop.id)
-
-    }
-
-    // console.log(stopArray)
-
+    stopArray = await getStopPoints(lat, lon, stopTypes)
 
     let output = []
+
+    // write this better and also add in bustimes
     for (let i = 0; i<stopArray.length; i++){
         let dict = {};
         console.log(stopArray[i])
@@ -129,4 +92,42 @@ async function getValidPostcode(){
     return postcode
 }
 
-getStopPoints()
+async function getStopPoints(lat, lon, stopTypes){
+    console.log('please enter a distance')
+    let radius = Math.min(readline.prompt(), 1000)
+    let stoppointslist = []
+
+    do{
+        try{
+            let url = `https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=${stopTypes}&radius=${radius}`
+            let stoppoints = await(fetch(url).then(response => response.json()))
+            stoppointslist = stoppoints.stopPoints
+
+            if (stoppointslist.length == 0){
+
+                throw `no stoppoints within distance`
+            }
+        }
+        catch(error){
+            if (error == 'no stoppoints within distance')
+            console.log(`no stoppoints ${radius} m of this postcode. please extend try extending the radius`)
+            radius = readline.prompt()
+        }
+    } while (stoppointslist.length == 0)
+    
+    let stopArray;
+
+    if (stoppointslist.length == 1){
+        stopArray = stoppointslist.map(stop => stop.id)
+    } else{
+
+        let sortedstops = stoppointslist.sort(function(first, second) {
+            return first.distance - second.distance;
+        });
+        stopArray = sortedstops.slice(0,2).map(stop => stop.id)
+
+    }
+
+    return stopArray
+}
+busBoard()
